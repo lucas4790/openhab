@@ -18,8 +18,7 @@ spec:
       port: 8080                  # Service port
       protocol: TCP
   selector:
-    app: openhab
-    type: smart-home
+    app: openhab  # Kept selector simple with primary label
 
 ---
 
@@ -27,19 +26,19 @@ apiVersion: v1
 kind: Pod
 metadata:
   name: openhab-pod
+  namespace: smart-home
   labels:
     app: openhab
     type: smart-home
-  namespace: smart-home
-
 spec:
+  restartPolicy: Always  # Added restart policy
   containers:
     - name: openhab
       image: openhab/openhab:latest
       imagePullPolicy: IfNotPresent
       ports:
         - containerPort: 8080
-        - containerPort: 8443  
+        - containerPort: 8443
       volumeMounts:
         - mountPath: /openhab/conf
           name: conf
