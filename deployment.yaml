@@ -9,7 +9,7 @@ apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
   name: openhab-pvc
-  namespace: media-services
+  namespace: openhab
 spec:
   accessModes:
     - ReadWriteOnce
@@ -21,7 +21,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: openhab
-  namespace: media-services
+  namespace: openhab
 spec:
   replicas: 1
   selector:
@@ -57,7 +57,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: openhab-service
-  namespace: media-services
+  namespace: openhab
 spec:
   selector:
     app: openhab
