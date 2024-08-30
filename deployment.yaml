@@ -1,74 +1,60 @@
-# namespace.yaml
 apiVersion: v1
 kind: Namespace
 metadata:
-  name: openhab
+  name: smart-home
+
 ---
 
 apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: openhab-pvc
-  namespace: openhab
-spec:
-  accessModes:
-    - ReadWriteOnce
-  resources:
-    requests:
-      storage: 5Gi
----
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: openhab
-  namespace: openhab
-spec:
-  replicas: 1
-  selector:
-    matchLabels:
-      app: openhab
-  template:
-    metadata:
-      labels:
-        app: openhab
-    spec:
-      containers:
-        - name: openhab
-          image: openhab/openhab:latest
-          ports:
-            - containerPort: 8080
-              name: http
-            - containerPort: 8443
-              name: https
-          volumeMounts:
-            - name: openhab-storage
-              mountPath: /openhab/conf
-            - name: openhab-userdata
-              mountPath: /openhab/userdata
-      volumes:
-        - name: openhab-storage
-          persistentVolumeClaim:
-            claimName: openhab-pvc
-        - name: openhab-userdata
-          persistentVolumeClaim:
-            claimName: openhab-pvc
----
-apiVersion: v1
 kind: Service
 metadata:
-  name: openhab-service
-  namespace: openhab
+  name: openhab-services
+  namespace: smart-home
 spec:
-  selector:
-    app: openhab
   type: LoadBalancer
   loadBalancerIP: 192.168.1.231
   ports:
-    - protocol: TCP
-      port: 80
-      targetPort: 8080
-      name: http
-    - protocol: TCP
-      port: 443
-      targetPort: 8443
-      name: https
+    - targetPort: 8080            # Pod port
+      port: 8080                  # Service port
+      protocol: TCP
+  selector:
+    app: openhab
+    type: smart-home
+
+---
+
+apiVersion: v1
+kind: Pod
+metadata:
+  name: openhab-pod
+  labels:
+    app: openhab
+    type: smart-home
+  namespace: smart-home
+
+spec:
+  containers:
+    - name: openhab
+      image: openhab/openhab:latest
+      imagePullPolicy: IfNotPresent
+      ports:
+        - containerPort: 8080
+        - containerPort: 8443  
+      volumeMounts:
+        - mountPath: /openhab/conf
+          name: conf
+        - mountPath: /openhab/addons
+          name: addons
+        - mountPath: /openhab/userdata
+          name: userdata
+    
+  volumes:
+    - name: conf
+      hostPath:
+        path: /home/lucas/apps/openhab/conf
+    - name: addons
+      hostPath:
+        path: /home/lucas/apps/openhab/addons
+    - name: userdata
+      hostPath:
+        path: /home/lucas/apps/openhab/userdata
